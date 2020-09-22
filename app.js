@@ -4,8 +4,8 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 
 const app = express();
-
-app.use((req,res,next) => {
+app.use(express.urlencoded({ extended: true, inflate: true, limit: '100kb', parameterLimit: 1000, }))
+app.use((req, res, next) => {
     console.log('Processing a request...');
     next();
 });
@@ -27,32 +27,35 @@ const auth = {
 passport.use(new LocalStrategy({
     usernameField: 'un',
     passwordField: 'pw'
-},(un,pw,done) => {
+}, (un, pw, done) => {
     console.log('passport.use');
     debugger;
     if (un === auth.email && pw === auth.password) {
         return done(null, auth);
     } else {
-        return done(null,false,{message: 'Incorrect Email or Password'});
+        return done(null, false, { message: 'Incorrect Email or Password' });
     }
 }));
 
-passport.serializeUser((user,done) => {
+passport.serializeUser((user, done) => {
     console.log('passport.serializeUser');
-    return done(null,user.email);
+    return done(null, user.email);
 });
 
-passport.deserializeUser((email,done) => {
+passport.deserializeUser((email, done) => {
     console.log('passport.deserializeUser');
-    return done(null,email);
+    return done(null, email);
 })
 
-app.post('/login',passport.authenticate('local',{
+app.post('/login', (req, res, next) => { 
+    debugger;
+    next();
+}, passport.authenticate('local', {
     successRedirect: '/success',
     failureRedirect: '/'
 }));
 
-app.get('/',(req,res) => {
+app.get('/', (req, res) => {
     res.send(`
     <!DOCTYPE html>
     <html>
@@ -71,10 +74,10 @@ app.get('/',(req,res) => {
     `);
 });
 
-app.get('/success',(req,res) => {
+app.get('/success', (req, res) => {
     res.send('Login success!');
 })
 
-app.listen(5506,() => {
+app.listen(5506, () => {
     console.log('Test app started on: localhost:5506');
 });
